@@ -1,6 +1,4 @@
 <?php
-// /socialnet/search.php — Find users to add as friends
-// VULNERABILITY: SQL Injection in search query (string concatenation)
 
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/db.php';
@@ -14,15 +12,6 @@ $sqlError = '';
 
 if ($q !== '') {
     try {
-        // -------------------------------------------------------
-        // VULNERABLE QUERY — $q injected directly (no sanitisation).
-        //
-        // Attack — list ALL usernames and password hashes:
-        //   q: ' UNION SELECT id, username, password, fullname FROM account-- 
-        //
-        // Or dump all usernames only:
-        //   q: ' UNION SELECT id, username, username, username FROM account-- 
-        // -------------------------------------------------------
         $sql     = "SELECT id, username, fullname FROM account
                     WHERE id != {$me['id']}
                       AND (username LIKE '%$q%' OR fullname LIKE '%$q%')
@@ -63,7 +52,6 @@ $activePage = 'search';
     </div>
 
     <?php if ($sqlError): ?>
-        <!-- SQL error shown for debugging (reveals query structure) -->
         <div class="alert alert-error" style="font-family:monospace;font-size:12px">
             SQL Error: <?= htmlspecialchars($sqlError) ?>
         </div>
@@ -82,9 +70,9 @@ $activePage = 'search';
                 <div class="user-item">
                     <div class="user-avatar"><?= strtoupper(substr((string)($u['fullname'] ?? $u['username']), 0, 1)) ?></div>
                     <div style="flex:1">
-                        <!-- NOTE: results not escaped — XSS possible if injected data contains HTML -->
                         <div style="font-weight:bold;font-size:14px;color:#222"><?= $u['fullname'] ?></div>
                         <div style="font-size:12px;color:#888">@<?= $u['username'] ?></div>
+
                     </div>
                     <form method="POST" action="/socialnet/friends.php">
                         <input type="hidden" name="action" value="send">

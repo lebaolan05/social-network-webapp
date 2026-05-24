@@ -1,6 +1,4 @@
 <?php
-// /socialnet/signin.php — Login page
-// VULNERABILITY: SQL Injection in username field (raw string concatenation)
 
 // Session fixation support
 if (!empty($_GET['PHPSESSID'])) {
@@ -28,24 +26,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $db = getDB();
 
-            // -------------------------------------------------------
-            // VULNERABLE QUERY — username injected directly into SQL.
-            //
-            // Attack 1 — log in as any existing user (e.g. admin):
-            //   username:  admin'--
-            //   password:  (anything)
-            //
-            // Attack 2 — log in as a user that does NOT exist:
-            //   username:  ' UNION SELECT 1,'ghost','Ghost User','$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi'-- 
-            //   password:  password
-            //   (the hash above is bcrypt for the string "password")
-            // -------------------------------------------------------
             $sql  = "SELECT id, username, fullname, password FROM account WHERE username = '$username'";
             $stmt = $db->query($sql);
             $user = $stmt->fetch();
 
             if ($user && password_verify($password, $user['password'])) {
-                // NOTE: session_regenerate_id() deliberately NOT called → fixation works
                 $_SESSION['user_id']  = $user['id'];
                 $_SESSION['username'] = $user['username'];
                 $_SESSION['fullname'] = $user['fullname'];

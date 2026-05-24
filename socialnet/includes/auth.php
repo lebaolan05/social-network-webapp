@@ -1,9 +1,6 @@
 <?php
 function requireLogin(): void {
     if (session_status() === PHP_SESSION_NONE) {
-        // VULNERABILITY: Session Fixation — accept session ID from URL
-        // Attack: craft a URL with ?PHPSESSID=known_value, trick victim into
-        // visiting it and logging in → attacker reuses the same session ID.
         if (!empty($_GET['PHPSESSID'])) {
             session_id($_GET['PHPSESSID']);
         }

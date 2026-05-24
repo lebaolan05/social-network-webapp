@@ -1,21 +1,12 @@
 <?php
-// /admin/newuser.php — Admin page to create new users
-// VULNERABILITY: Raw SQL execution via "Quick SQL" textarea
+
 require_once __DIR__ . '/../socialnet/includes/db.php';
+
 
 $message = '';
 $messageType = '';
 $sqlResult = null;
 
-// -------------------------------------------------------
-// VULNERABILITY: Direct SQL execution (no auth, no restriction).
-//
-// Attack — add a new user in a SINGLE query:
-//   Paste into the "Quick SQL" box:
-//   INSERT INTO account (username, fullname, password, description)
-//   VALUES ('hacker', 'Mr Hacker', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'I got in!')
-//   (the hash above is bcrypt for "password" — login with that after inserting)
-// -------------------------------------------------------
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['raw_sql'])) {
     $rawSql = trim($_POST['raw_sql']);
     try {

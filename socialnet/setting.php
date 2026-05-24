@@ -1,7 +1,4 @@
 <?php
-// /socialnet/setting.php — Edit profile description
-// VULNERABILITY: IDOR via target_user POST parameter
-// Any logged-in user can edit ANY user's profile by supplying target_user=<username>
 
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/db.php';
@@ -12,15 +9,6 @@ $db = getDB();
 $message = '';
 $messageType = '';
 
-// -------------------------------------------------------
-// VULNERABILITY: IDOR — target_user is accepted from POST.
-// Intended for "admin editing" but there is NO privilege check.
-//
-// Attack: send a POST request to /socialnet/setting.php with:
-//   target_user=admin
-//   description=<your new content>
-// This overwrites the admin's (or any user's) profile description.
-// -------------------------------------------------------
 $targetUsername = trim($_POST['target_user'] ?? '');
 if ($targetUsername !== '') {
     $stmt = $db->prepare('SELECT id, username, fullname, description FROM account WHERE username = ?');
@@ -104,8 +92,6 @@ $activePage = 'setting';
     <div class="section-label">Profile Content</div>
     <div class="card">
         <form method="POST" action="/socialnet/setting.php">
-            <!-- VULNERABILITY: hidden target_user field.
-                 An attacker intercepts this form and changes target_user to any username. -->
             <input type="hidden" name="target_user" value="<?= htmlspecialchars($targetAccount['username']) ?>">
 
             <div class="form-group">

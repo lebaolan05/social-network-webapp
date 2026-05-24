@@ -1,6 +1,4 @@
 <?php
-// /socialnet/profile.php — View a user's profile
-// Friends-only access enforced (with a deliberate IDOR bypass via ?id=)
 
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/db.php';
@@ -10,16 +8,7 @@ $db = getDB();
 
 $owner = null;
 
-// -------------------------------------------------------
-// VULNERABILITY: IDOR via numeric ?id= parameter.
-// The ?owner=username path enforces friendship check, but
-// ?id=<numeric> is resolved without ANY friendship check.
-//
-// Attack: visit profile.php?id=2 to see user #2's full
-// profile even when you are not friends with them.
-// -------------------------------------------------------
 if (isset($_GET['id']) && ctype_digit((string)$_GET['id'])) {
-    // Fetch by numeric ID — NO friendship check (IDOR)
     $stmt = $db->prepare('SELECT id, username, fullname, description FROM account WHERE id = ?');
     $stmt->execute([(int)$_GET['id']]);
     $owner = $stmt->fetch();
@@ -114,11 +103,6 @@ $activePage = 'profile';
         <div class="section-label">About</div>
         <div class="card">
             <?php if (!empty($owner['description'])): ?>
-                <!-- VULNERABILITY: Stored XSS — description output WITHOUT htmlspecialchars.
-                     Attack: set your description to a script tag, e.g.:
-                       <script>alert('XSS! Cookie: ' + document.cookie)</script>
-                     Any visitor to your profile will execute the script.
-                     Combined with session fixation → full session hijack. -->
                 <div style="white-space:pre-wrap;line-height:1.8;font-size:14px;color:#333"><?= $owner['description'] ?></div>
             <?php else: ?>
                 <div style="color:#888;font-style:italic">
